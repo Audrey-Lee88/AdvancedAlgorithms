@@ -3,7 +3,7 @@ def initialTableau(c, A, b):
     # each row of A with b tacked on
     tableau = [row[:] + [x] for row, x in zip(A, b)]
     # make the max func the same size
-    tableau.append(c[:] + [0,0,0,0])
+    tableau.append(c[:] + (len(c)+1)*[0])
     # print(tableau)
     return tableau
 
@@ -54,11 +54,16 @@ def transpose(tableau):
     return list(zip(*tableau))
 
 
-def primalSolution(tableau):
+def isBasis(col):
+    return sum(col) == 1
+
+
+def primalSolution(tableau, basis):
     # the pivot columns denote which variables are used
     columns = transpose(tableau)
-    indices = [j for j, col in enumerate(columns[:-1]) if sum(col) == 1]
-    return list(zip(indices, columns[-1]))
+    # indices = [j for j, col in enumerate(columns[:-1]) if isBasis(col)]
+    # return list(zip(indices[2:]+indices[:2], columns[-1]))
+    return list(zip(basis, columns[-1]))
 
 
 def objectiveValue(tableau):
@@ -68,18 +73,21 @@ def objectiveValue(tableau):
 
 def simplex(c, A, b):
     # make it into a tableau
+    basis = [(j+len(c)) for j in range(len(A))]
     tableau = initialTableau(c, A, b)
 
     while canImprove(tableau):
         pivot = findPivotIndex(tableau)
         print("pivot:", pivot)
+        basis[pivot[0]] = pivot[1]
         pivotAbout(tableau, pivot)
     # print(tableau)
-    return primalSolution(tableau), objectiveValue(tableau)
+    return primalSolution(tableau, basis), objectiveValue(tableau)
 
 
 if __name__ == "__main__":
     c = [8,-6,4]
     A = [[1,1,1,1,0,0],[5,3,0,0,1,0],[0,9,2,0,0,1]]
     b = [12,20,15]
+
     print(simplex(c,A,b))
